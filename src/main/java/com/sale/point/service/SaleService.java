@@ -6,6 +6,7 @@ import com.sale.point.device.output.Screen;
 import com.sale.point.domain.Product;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,21 +17,23 @@ public class SaleService {
     private Printer printer = new Printer();
 
     public void process() {
-        String barCode = "";
+        String barCode = scanner.scanCode();
         List<Product> products = new ArrayList<>();
         BigDecimal totalPrice;
 
         while(!barCode.equals("exit")) {
-            barCode = scanner.scanCode();
             if (barCode.isEmpty()) {
                 screen.displayWarning("Invalid bar-code");
+            } else {
+                Product product = dbService.fetchProduct(barCode);
+                if (product == null) {
+                    screen.displayWarning("Product not found");
+                } else {
+                    screen.displayProductNameAndPrice(product);
+                    products.add(product);
+                }
             }
-            Product product = dbService.fetchProduct(barCode);
-            if (product == null) {
-                screen.displayWarning("Product not found");
-            }
-            screen.displayProductNameAndPrice(product);
-            products.add(product);
+            barCode = scanner.scanCode();
         }
 
         totalPrice = calculateTotalPrice(products);
@@ -41,6 +44,7 @@ public class SaleService {
     private BigDecimal calculateTotalPrice(List<Product> products) {
         return products.stream()
                 .map(Product::getPrice)
-                .reduce(BigDecimal.ZERO, (sum, current) -> sum = sum.add(current));
+                .reduce(BigDecimal.ZERO, (sum, current) -> sum = sum.add(current))
+                .setScale(2, RoundingMode.HALF_UP);
     }
 }
