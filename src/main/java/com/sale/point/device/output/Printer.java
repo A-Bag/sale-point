@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public class Printer {
-    public void print(List<Product> products, BigDecimal totalPrice) {
+    public void printReceipt(List<Product> products, BigDecimal totalPrice) {
 
     }
 }

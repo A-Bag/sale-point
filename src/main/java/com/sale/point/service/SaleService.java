@@ -19,29 +19,15 @@ public class SaleService {
     private Printer printer = new Printer();
 
     public void process() {
-        String barCode = ""; //= scanner.scanCode();
+        String barCode = "";
         Product product;
         List<Product> products = new ArrayList<>();
         BigDecimal totalPrice;
 
-        /*while(!barCode.equals("exit")) {
-            if (barCode.isEmpty()) {
-                screen.displayWarning("Invalid bar-code");
-            } else {
-                Product product = dbService.fetchProduct(barCode);
-                if (product == null) {
-                    screen.displayWarning("Product not found");
-                } else {
-                    screen.displayProductNameAndPrice(product);
-                    products.add(product);
-                }
-            }
-            barCode = scanner.scanCode();
-        }*/
-
         while (!barCode.equals("exit")) {
             try {
                 barCode = scanner.scanCode();
+                if (barCode.equals("exit")) { continue; }
                 product = dbService.fetchProduct(barCode);
             } catch (InvalidBarCodeException e) {
                 screen.displayWarning("Invalid bar-code");
@@ -56,17 +42,13 @@ public class SaleService {
 
         totalPrice = calculateTotalPrice(products);
         screen.displayTotalPrice(totalPrice);
-        printer.print(products, totalPrice);
+        printer.printReceipt(products, totalPrice);
     }
 
     private BigDecimal calculateTotalPrice(List<Product> products) {
-        if (!products.isEmpty()) {
-            return products.stream()
-                    .map(Product::getPrice)
-                    .reduce(BigDecimal.ZERO, (sum, current) -> sum = sum.add(current))
-                    .setScale(2, RoundingMode.HALF_UP);
-        } else {
-            return BigDecimal.ZERO;
-        }
+        return products.stream()
+                .map(Product::getPrice)
+                .reduce(BigDecimal.ZERO, (sum, current) -> sum = sum.add(current))
+                .setScale(2, RoundingMode.HALF_UP);
     }
 }

@@ -6,7 +6,6 @@ import com.sale.point.device.output.Screen;
 import com.sale.point.domain.Product;
 import com.sale.point.exception.InvalidBarCodeException;
 import com.sale.point.exception.ProductNotFoundException;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -60,6 +59,7 @@ public class SaleServiceTestSuite {
         verify(screenMock, times(1))
                 .displayTotalPrice(new BigDecimal(29.98).setScale(2, RoundingMode.HALF_UP));
         verify(printerMock, times(1))
-                .print(Arrays.asList(product1, product2), new BigDecimal(29.98).setScale(2, RoundingMode.HALF_UP));
+                .printReceipt(Arrays.asList(product1, product2),
+                        new BigDecimal(29.98).setScale(2, RoundingMode.HALF_UP));
     }
 }
