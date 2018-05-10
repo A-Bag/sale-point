@@ -4,6 +4,9 @@ import com.sale.point.device.input.Scanner;
 import com.sale.point.device.output.Printer;
 import com.sale.point.device.output.Screen;
 import com.sale.point.domain.Product;
+import com.sale.point.exception.InvalidBarCodeException;
+import com.sale.point.exception.ProductNotFoundException;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -31,12 +34,12 @@ public class SaleServiceTestSuite {
     private Printer printerMock;
 
     @Test
-    public void testProcess() {
+    public void testProcess() throws Exception {
         //Given
         when(scannerMock.scanCode())
                 .thenReturn("1234561234567")
                 .thenReturn("1234561234568")
-                .thenReturn("")
+                .thenThrow(new InvalidBarCodeException())
                 .thenReturn("1234561234569")
                 .thenReturn("exit");
         Product product1 = new Product("1234561234567", "product1", new BigDecimal(9.99));
@@ -46,7 +49,7 @@ public class SaleServiceTestSuite {
         when(dbServiceMock.fetchProduct("1234561234568"))
                 .thenReturn(product2);
         when(dbServiceMock.fetchProduct("1234561234569"))
-                .thenReturn(null);
+                .thenThrow(new ProductNotFoundException());
         //When
         saleService.process();
         //Then

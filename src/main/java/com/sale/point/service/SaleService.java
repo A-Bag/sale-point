@@ -4,6 +4,8 @@ import com.sale.point.device.input.Scanner;
 import com.sale.point.device.output.Printer;
 import com.sale.point.device.output.Screen;
 import com.sale.point.domain.Product;
+import com.sale.point.exception.InvalidBarCodeException;
+import com.sale.point.exception.ProductNotFoundException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,11 +19,12 @@ public class SaleService {
     private Printer printer = new Printer();
 
     public void process() {
-        String barCode = scanner.scanCode();
+        String barCode = ""; //= scanner.scanCode();
+        Product product;
         List<Product> products = new ArrayList<>();
         BigDecimal totalPrice;
 
-        while(!barCode.equals("exit")) {
+        /*while(!barCode.equals("exit")) {
             if (barCode.isEmpty()) {
                 screen.displayWarning("Invalid bar-code");
             } else {
@@ -34,6 +37,21 @@ public class SaleService {
                 }
             }
             barCode = scanner.scanCode();
+        }*/
+
+        while (!barCode.equals("exit")) {
+            try {
+                barCode = scanner.scanCode();
+                product = dbService.fetchProduct(barCode);
+            } catch (InvalidBarCodeException e) {
+                screen.displayWarning("Invalid bar-code");
+                continue;
+            } catch (ProductNotFoundException e) {
+                screen.displayWarning("Product not found");
+                continue;
+            }
+            screen.displayProductNameAndPrice(product);
+            products.add(product);
         }
 
         totalPrice = calculateTotalPrice(products);
@@ -42,9 +60,13 @@ public class SaleService {
     }
 
     private BigDecimal calculateTotalPrice(List<Product> products) {
-        return products.stream()
-                .map(Product::getPrice)
-                .reduce(BigDecimal.ZERO, (sum, current) -> sum = sum.add(current))
-                .setScale(2, RoundingMode.HALF_UP);
+        if (!products.isEmpty()) {
+            return products.stream()
+                    .map(Product::getPrice)
+                    .reduce(BigDecimal.ZERO, (sum, current) -> sum = sum.add(current))
+                    .setScale(2, RoundingMode.HALF_UP);
+        } else {
+            return BigDecimal.ZERO;
+        }
     }
 }
